@@ -163,8 +163,8 @@ function genOldFeedData($id)
     global $logger;
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
     // Validate that $id is a positive integer to prevent injection
-    $validId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    if ($validId === false) {
+    $validatedId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($validatedId === false) {
         $logger->warning('Invalid revision ID provided: ' . $id);
         return false;
     }
@@ -186,12 +186,12 @@ function genOldFeedData($id)
     ]);
     $response = file_get_contents(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1' .
-        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($validId),
+        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . $validatedId,
         false,
         $context
     );
     if ($response === false) {
-        $logger->warning('Failed to fetch revision data from Wikipedia API for revision ID: ' . $validId);
+        $logger->warning('Failed to fetch revision data from Wikipedia API for revision ID: ' . $validatedId);
         return false;
     }
     $data = json_decode($response, true);
@@ -209,7 +209,7 @@ function genOldFeedData($id)
         'title' => str_replace(namespace2name($data['ns']) . ':', '', $data['title']),
         'flags' => '',
         'url' => '',
-        'revid' => $validId,
+        'revid' => $validatedId,
         'old_revid' => '',
         'user' => $data['revisions'][0]['user'],
         'length' => '',
