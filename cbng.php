@@ -175,6 +175,10 @@ function genOldFeedData($id)
             'timeout' => 10,
             'user_agent' => 'ClueBot/2.0 (Training EditDB Scraper)'
         ],
+        'https' => [
+            'timeout' => 10,
+            'user_agent' => 'ClueBot/2.0 (Training EditDB Scraper)'
+        ],
         'ssl' => [
             'verify_peer' => true,
             'verify_peer_name' => true

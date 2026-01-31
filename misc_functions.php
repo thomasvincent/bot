@@ -42,6 +42,10 @@ function loadHuggleWhitelist()
             'timeout' => 10,
             'user_agent' => 'ClueBot/2.0'
         ],
+        'https' => [
+            'timeout' => 10,
+            'user_agent' => 'ClueBot/2.0'
+        ],
         'ssl' => [
             'verify_peer' => true,
             'verify_peer_name' => true
