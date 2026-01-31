@@ -155,9 +155,21 @@ function genOldFeedData($id)
 {
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
     ini_set('user_agent', 'ClueBot/2.0 (Training EditDB Scraper)');
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10,
+            'user_agent' => 'ClueBot/2.0 (Training EditDB Scraper)'
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true
+        ]
+    ]);
     $data = json_decode(file_get_contents(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1' .
-        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($id)
+        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($id),
+        false,
+        $context
     ), true);
     if (isset($data['query']['badrevids'])) {
         return false;
