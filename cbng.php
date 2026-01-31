@@ -91,6 +91,7 @@ function setupUrlFetch($url)
 
 function getUrlsInParallel($urls)
 {
+    global $logger;
     $mh = curl_multi_init();
     $chs = array();
     foreach ($urls as $url) {
@@ -109,6 +110,7 @@ function getUrlsInParallel($urls)
         $content = curl_multi_getcontent($ch);
         $decoded = json_decode($content, true);
         if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            $logger->warning('Failed to decode JSON from parallel URL fetch: ' . json_last_error_msg());
             $decoded = false;
         }
         $ret[] = $decoded;
@@ -158,7 +160,14 @@ function parseAllFeed($feed)
 
 function genOldFeedData($id)
 {
+    global $logger;
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
+    // Validate that $id is numeric to prevent injection
+    if (!is_numeric($id) || $id <= 0) {
+        $logger->warning('Invalid revision ID provided: ' . $id);
+        return false;
+    }
+
     ini_set('user_agent', 'ClueBot/2.0 (Training EditDB Scraper)');
     $context = stream_context_create([
         'http' => [
@@ -177,10 +186,12 @@ function genOldFeedData($id)
         $context
     );
     if ($response === false) {
+        $logger->warning('Failed to fetch revision data from Wikipedia API for revision ID: ' . $id);
         return false;
     }
     $data = json_decode($response, true);
     if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
+        $logger->warning('Failed to decode JSON response from Wikipedia API: ' . json_last_error_msg());
         return false;
     }
     if (isset($data['query']['badrevids'])) {

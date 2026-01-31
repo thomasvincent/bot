@@ -52,7 +52,7 @@ function loadHuggleWhitelist()
         Globals::$wl = array_slice(explode('|', $hgWLRaw), 0, -1);
         $logger->info('Loaded huggle whitelist (' . count(Globals::$wl) . ')');
     } else {
-        $logger->warning('Failed to load huggle whitelist');
+        $logger->warning('Failed to load huggle whitelist from https://huggle.bena.rocks/');
     }
 }
 
