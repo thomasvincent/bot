@@ -165,12 +165,19 @@ function genOldFeedData($id)
             'verify_peer_name' => true
         ]
     ]);
-    $data = json_decode(file_get_contents(
+    $response = file_get_contents(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1' .
         '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($id),
         false,
         $context
-    ), true);
+    );
+    if ($response === false) {
+        return false;
+    }
+    $data = json_decode($response, true);
+    if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
+        return false;
+    }
     if (isset($data['query']['badrevids'])) {
         return false;
     }

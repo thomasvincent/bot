@@ -48,7 +48,7 @@ function loadHuggleWhitelist()
         ]
     ]);
     $hgWLRaw = file_get_contents('https://huggle.bena.rocks/?action=read&wp=en.wikipedia.org', false, $context);
-    if ($hgWLRaw !== false) {
+    if (!empty($hgWLRaw)) {
         Globals::$wl = array_slice(explode('|', $hgWLRaw), 0, -1);
         $logger->info('Loaded huggle whitelist (' . count(Globals::$wl) . ')');
     } else {
