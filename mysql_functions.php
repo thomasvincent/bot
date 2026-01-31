@@ -25,7 +25,7 @@ use mysqli_sql_exception;
 function is_mysql_alive($con)
 {
     try {
-        return @mysqli_query($con, 'SELECT LAST_INSERT_ID()');
+        return mysqli_query($con, 'SELECT LAST_INSERT_ID()');
     } catch (mysqli_sql_exception $e) {
         return false;
     }

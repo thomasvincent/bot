@@ -83,6 +83,8 @@ function setupUrlFetch($url)
     curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
     curl_setopt($ch, CURLOPT_ENCODING, '');
     curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
     return $ch;
 }
@@ -104,7 +106,7 @@ function getUrlsInParallel($urls)
     }
     $ret = array();
     foreach ($chs as $ch) {
-        $ret[] = unserialize(curl_multi_getcontent($ch));
+        $ret[] = json_decode(curl_multi_getcontent($ch), true);
         curl_multi_remove_handle($mh, $ch);
     }
     curl_multi_close($mh);
@@ -153,10 +155,10 @@ function genOldFeedData($id)
 {
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
     ini_set('user_agent', 'ClueBot/2.0 (Training EditDB Scraper)');
-    $data = unserialize(file_get_contents(
+    $data = json_decode(file_get_contents(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1' .
-        '&prop=revisions&rvprop=timestamp|user|comment&format=php&revids=' . urlencode($id)
-    ));
+        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($id)
+    ), true);
     if (isset($data['query']['badrevids'])) {
         return false;
     }
@@ -185,7 +187,7 @@ function parseFeedData($feedData, $useOld = false)
     $urls = array(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
         urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace'] . ':') . $feedData['title']) .
-        '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=php',
+        '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
     list($api) = getUrlsInParallel($urls);
     $api = current($api['query']['pages']);

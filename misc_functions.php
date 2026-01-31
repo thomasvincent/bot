@@ -37,7 +37,18 @@ function myfnmatch($pattern, $string)
 function loadHuggleWhitelist()
 {
     global $logger;
-    if (($hgWLRaw = @file_get_contents('https://huggle.bena.rocks/?action=read&wp=en.wikipedia.org')) != null) {
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10,
+            'user_agent' => 'ClueBot/2.0'
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true
+        ]
+    ]);
+    $hgWLRaw = file_get_contents('https://huggle.bena.rocks/?action=read&wp=en.wikipedia.org', false, $context);
+    if ($hgWLRaw !== false) {
         Globals::$wl = array_slice(explode('|', $hgWLRaw), 0, -1);
         $logger->info('Loaded huggle whitelist (' . count(Globals::$wl) . ')');
     } else {
