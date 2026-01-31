@@ -164,8 +164,10 @@ function genOldFeedData($id)
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
     // Validate that $id is a positive integer to prevent injection
     $validatedId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-    if ($validatedId === false) {
-        $logger->warning('Invalid revision ID provided: ' . $id);
+    if ($validatedId === false || $validatedId < 1) {
+        // Sanitize the invalid input for logging to prevent log injection
+        $sanitizedId = is_scalar($id) ? preg_replace('/[^\x20-\x7E]/', '', (string)$id) : 'non-scalar';
+        $logger->warning('Invalid revision ID provided: ' . $sanitizedId);
         return false;
     }
 
