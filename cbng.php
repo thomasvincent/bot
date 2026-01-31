@@ -109,7 +109,7 @@ function getUrlsInParallel($urls)
     foreach ($chs as $ch) {
         $content = curl_multi_getcontent($ch);
         $decoded = json_decode($content, true);
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             $logger->warning('Failed to decode JSON from parallel URL fetch: ' . json_last_error_msg());
             $decoded = false;
         }
@@ -162,8 +162,9 @@ function genOldFeedData($id)
 {
     global $logger;
     /* namespace, namespaceid, title, flags, url, revid, old_revid, user, length, comment, timestamp */
-    // Validate that $id is numeric to prevent injection
-    if (!is_numeric($id) || $id <= 0) {
+    // Validate that $id is a positive integer to prevent injection
+    $validId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($validId === false) {
         $logger->warning('Invalid revision ID provided: ' . $id);
         return false;
     }
@@ -181,16 +182,16 @@ function genOldFeedData($id)
     ]);
     $response = file_get_contents(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1' .
-        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($id),
+        '&prop=revisions&rvprop=timestamp|user|comment&format=json&revids=' . urlencode($validId),
         false,
         $context
     );
     if ($response === false) {
-        $logger->warning('Failed to fetch revision data from Wikipedia API for revision ID: ' . $id);
+        $logger->warning('Failed to fetch revision data from Wikipedia API for revision ID: ' . $validId);
         return false;
     }
     $data = json_decode($response, true);
-    if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
+    if (json_last_error() !== JSON_ERROR_NONE) {
         $logger->warning('Failed to decode JSON response from Wikipedia API: ' . json_last_error_msg());
         return false;
     }
@@ -204,7 +205,7 @@ function genOldFeedData($id)
         'title' => str_replace(namespace2name($data['ns']) . ':', '', $data['title']),
         'flags' => '',
         'url' => '',
-        'revid' => $id,
+        'revid' => $validId,
         'old_revid' => '',
         'user' => $data['revisions'][0]['user'],
         'length' => '',
