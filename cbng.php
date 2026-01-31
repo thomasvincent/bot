@@ -106,7 +106,12 @@ function getUrlsInParallel($urls)
     }
     $ret = array();
     foreach ($chs as $ch) {
-        $ret[] = json_decode(curl_multi_getcontent($ch), true);
+        $content = curl_multi_getcontent($ch);
+        $decoded = json_decode($content, true);
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            $decoded = false;
+        }
+        $ret[] = $decoded;
         curl_multi_remove_handle($mh, $ch);
     }
     curl_multi_close($mh);
