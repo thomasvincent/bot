@@ -4,15 +4,15 @@ concurrency:
   group: ${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 permissions:
-  contents: write
-  packages: write
-  issues: write
+  contents: read
 jobs:
   jobs:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        target: [phplint, phpcs]
+        target: [phplint, phpcs, audit]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -47,13 +47,20 @@ jobs:
           composer exec phpcs -- --standard=PSR12 --ignore=vendor/ .
         if: matrix.target == 'phpcs'
 
+      - name: Composer Audit
+        run: composer audit
+        if: matrix.target == 'audit'
+
   build-container:
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
       - name: Build container
-        uses: infrabits/ci-pack@main
+        uses: infrabits/ci-pack@f024bed54e08937fd3b09c579a803c88d35d8110
         with:
           image: ghcr.io/${{ github.repository }}:${{ github.sha }}
           builder: tools-harbor.wmcloud.org/toolforge/heroku-builder:24_0.20.7
